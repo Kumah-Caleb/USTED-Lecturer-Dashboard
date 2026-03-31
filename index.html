@@ -147,238 +147,241 @@
     <footer class="bg-light text-center py-3 mt-4"><div class="container"><p class="mb-0">&copy; 2025 USTED. Lecturer Dashboard</p></div></footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        const API_BASE_URL = 'https://aamusted-predictor-backend2.onrender.com';
-        let gradeChart = null, riskChart = null;
-        let selectedStudent = null;
+<script>
+    const API_BASE_URL = 'https://aamusted-predictor-backend2.onrender.com';
+    let gradeChart = null, riskChart = null, selectedStudent = null;
 
-        function checkAuth() { const token = localStorage.getItem('token'); if (!token) { window.location.href = 'login.html'; return false; } return true; }
+    function checkAuth() { const token = localStorage.getItem('token'); if (!token) { window.location.href = 'login.html'; return false; } return true; }
 
-        async function loadDashboard() {
-            const token = localStorage.getItem('token');
-            if (!token) return;
-            try {
-                const lecturerRes = await fetch(`${API_BASE_URL}/api/lecturer/profile?token=${token}`);
-                if (lecturerRes.ok) { const info = await lecturerRes.json(); document.getElementById('lecturerName').textContent = info.full_name || 'Lecturer'; document.getElementById('welcomeMsg').textContent = `Welcome, ${info.full_name || 'Dr. Lecturer'}!`; }
-                const statsRes = await fetch(`${API_BASE_URL}/api/lecturer/stats?token=${token}`);
-                if (statsRes.ok) { const stats = await statsRes.json(); document.getElementById('totalStudents').textContent = stats.total_students || 0; document.getElementById('atRiskCount').textContent = stats.at_risk_count || 0; document.getElementById('avgGpa').textContent = stats.avg_predicted_gpa || '0.00'; document.getElementById('totalPredictions').textContent = stats.total_predictions || 0; }
-                await loadStudents(); await loadAlerts(); await loadAnalytics();
-            } catch (error) { console.error('Error:', error); }
-        }
+    async function loadDashboard() {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        try {
+            const lecturerRes = await fetch(`${API_BASE_URL}/api/lecturer/profile?token=${token}`);
+            if (lecturerRes.ok) { const info = await lecturerRes.json(); document.getElementById('lecturerName').textContent = info.full_name || 'Lecturer'; document.getElementById('welcomeMsg').textContent = `Welcome, ${info.full_name || 'Dr. Lecturer'}!`; }
+            const statsRes = await fetch(`${API_BASE_URL}/api/lecturer/stats?token=${token}`);
+            if (statsRes.ok) { const stats = await statsRes.json(); document.getElementById('totalStudents').textContent = stats.total_students || 0; document.getElementById('atRiskCount').textContent = stats.at_risk_count || 0; document.getElementById('avgGpa').textContent = stats.avg_predicted_gpa || '0.00'; document.getElementById('totalPredictions').textContent = stats.total_predictions || 0; }
+            await loadStudents();
+        } catch (error) { console.error('Dashboard error:', error); }
+    }
 
-        async function loadStudents() {
-            const token = localStorage.getItem('token'); const tbody = document.getElementById('studentsTable');
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/lecturer/students?token=${token}`);
-                const students = await response.json();
-                if (students && students.length > 0) {
-                    tbody.innerHTML = students.map(s => `<tr><td>${s.student_id}</td><td>${s.full_name}</td><td>${s.course_code || 'N/A'}</td><td>${s.latest_grade || 'N/A'}</td><td>${s.confidence || '0'}%</td><td class="risk-${s.risk_level || 'low'}">${s.risk_level || 'Unknown'}</td><td><button class="btn btn-sm btn-primary" onclick="goToPredict('${s.student_id}', '${s.full_name}')">🔮 Predict</button></td></tr>`).join('');
-                } else { tbody.innerHTML = '<tr><td colspan="7" class="text-center">No students found</tr>'; }
-            } catch (error) { console.error('Error:', error); }
-        }
+    async function loadStudents() {
+        const token = localStorage.getItem('token');
+        const tbody = document.getElementById('studentsTable');
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/lecturer/students?token=${token}`);
+            const students = await response.json();
+            if (students && students.length > 0) {
+                tbody.innerHTML = students.map(s => `<tr><td>${s.student_id}</td><td>${s.full_name}</td><td>${s.course_code || 'N/A'}</td><td>${s.latest_grade || 'N/A'}</td><td>${s.confidence || '0'}%</td><td class="risk-${s.risk_level || 'low'}">${s.risk_level || 'Unknown'}</td><td><button class="btn btn-sm btn-primary" onclick="goToPredict('${s.student_id}','${s.full_name}')">Predict</button></td></tr>`).join('');
+            } else { tbody.innerHTML = '<tr><td colspan="7" class="text-center">No students found</td></tr>'; }
+        } catch (error) { console.error('Students error:', error); }
+    }
 
-        async function loadMyCourses() {
-            const token = localStorage.getItem('token');
-            const container = document.getElementById('myCoursesList');
-            if (!container) { console.warn('loadMyCourses: #myCoursesList not found in DOM'); return; }
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/lecturer/courses/manage?token=${token}`);
-                const courses = await response.json();
-                if (courses && courses.length > 0) {
-                    container.innerHTML = `<div class="row">${courses.map(c => `<div class="col-md-4"><div class="card course-card" onclick="showCourseDetails(${c.id})"><div class="card-body"><h6><strong>${c.course_code}</strong> - ${c.course_name}</h6><p class="small">Enrolled: ${c.enrolled}/${c.capacity}</p><button class="btn btn-info btn-sm" onclick="event.stopPropagation(); showCourseDetails(${c.id})">&#128101; View Roster</button></div></div></div>`).join('')}</div>`;
-                } else {
-                    container.innerHTML = '<div class="alert alert-info">No courses yet. Click "Create New Course"!</div>';
-                }
-            } catch (error) { console.error('loadMyCourses error:', error); }
-        }
-
-        async function loadCoursesForPredict() {
-            const token = localStorage.getItem('token');
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/lecturer/courses/manage?token=${token}`);
-                const courses = await response.json();
-                const courseSelect = document.getElementById('predictCourseSelect');
-                if (!courseSelect) { console.warn('loadCoursesForPredict: #predictCourseSelect not found in DOM'); return; }
-                courseSelect.innerHTML = '<option value="">Select a course</option>' + courses.map(c => `<option value="${c.id}">${c.course_code} - ${c.course_name}</option>`).join('');
-                
-                courseSelect.onchange = async function() {
-                    const courseId = this.value;
-                    const studentSelect = document.getElementById('predictStudentSelect');
-                    if (!courseId) { studentSelect.innerHTML = '<option value="">Select a course first</option>'; studentSelect.disabled = true; document.getElementById('loadStudentDataBtn').disabled = true; return; }
-                    const studentsRes = await fetch(`${API_BASE_URL}/api/lecturer/courses/${courseId}/students?token=${token}`);
-                    const data = await studentsRes.json();
-                    if (data.students && data.students.length > 0) {
-                        studentSelect.innerHTML = '<option value="">Select a student</option>' + data.students.map(s => `<option value="${s.student_id}" data-name="${s.full_name}">${s.student_id} - ${s.full_name}</option>`).join('');
-                        studentSelect.disabled = false;
-                    } else { studentSelect.innerHTML = '<option value="">No students enrolled</option>'; studentSelect.disabled = true; }
-                    document.getElementById('loadStudentDataBtn').disabled = true;
-                };
-                
-                document.getElementById('predictStudentSelect').onchange = function() {
-                    document.getElementById('loadStudentDataBtn').disabled = !this.value;
-                    if (this.value) { const opt = this.options[this.selectedIndex]; selectedStudent = { student_id: this.value, full_name: opt.dataset.name }; }
-                };
-            } catch (error) { console.error('Error:', error); }
-        }
-
-        function goToPredict(studentId, studentName) {
-            document.getElementById('predict-tab').click();
-            const studentSelect = document.getElementById('predictStudentSelect');
-            for(let i = 0; i < studentSelect.options.length; i++) {
-                if(studentSelect.options[i].value === studentId) {
-                    studentSelect.selectedIndex = i;
-                    selectedStudent = { student_id: studentId, full_name: studentName };
-                    document.getElementById('loadStudentDataBtn').disabled = false;
-                    break;
-                }
+    async function loadMyCourses() {
+        const token = localStorage.getItem('token');
+        const container = document.getElementById('myCoursesList');
+        if (!container) { console.warn('myCoursesList not found'); return; }
+        container.innerHTML = '<div class="col-12 text-center"><div class="spinner-border spinner-border-sm"></div> Loading...</div>';
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/lecturer/courses/manage?token=${token}`);
+            if (!response.ok) { container.innerHTML = `<div class="col-12"><div class="alert alert-danger">Error loading courses (${response.status})</div></div>`; return; }
+            const courses = await response.json();
+            if (courses && courses.length > 0) {
+                container.innerHTML = courses.map(c => `
+                    <div class="col-md-4">
+                        <div class="card course-card" onclick="showCourseDetails(${c.id})">
+                            <div class="card-body">
+                                <h6><strong>${c.course_code}</strong> - ${c.course_name}</h6>
+                                <p class="small text-muted mb-2">Credits: ${c.credits} | Enrolled: ${c.enrolled || 0}/${c.capacity}</p>
+                                <button class="btn btn-info btn-sm" onclick="event.stopPropagation();showCourseDetails(${c.id})">View Roster</button>
+                            </div>
+                        </div>
+                    </div>`).join('');
+            } else {
+                container.innerHTML = '<div class="col-12"><div class="alert alert-info">No courses yet. Click "Create New Course" to get started!</div></div>';
             }
-        }
+        } catch (error) { container.innerHTML = `<div class="col-12"><div class="alert alert-danger">Error: ${error.message}</div></div>`; }
+    }
 
-        document.getElementById('loadStudentDataBtn').addEventListener('click', async function() {
-            if (!selectedStudent) return;
-            const container = document.getElementById('predictionFormContainer');
-            container.innerHTML = `<div class="text-center"><div class="spinner-border"></div><p>Loading complete prediction form...</p></div>`;
-            
-            // Load student data
-            const token = localStorage.getItem('token');
-            try {
-                const dataRes = await fetch(`${API_BASE_URL}/api/student/predict/data?student_id=${selectedStudent.student_id}&token=${token}`);
-                const studentData = await dataRes.json();
-                
-                // Create complete three-format prediction form (same as student)
-                container.innerHTML = `
-                    <div class="alert alert-info">Predicting for: <strong>${selectedStudent.full_name} (${selectedStudent.student_id})</strong></div>
-                    
-                    <!-- FORMAT 1: SEMESTER -->
-                    <div class="format-card">
-                        <div class="format-header">📅 FORMAT 1: SEMESTER FORMAT (40% Weight)</div>
-                        <div class="card-body">
-                            <div class="row"><div class="col-md-4"><label>Semester Type</label><select class="form-select" id="semesterType"><option value="regular">Regular</option><option value="non-regular">Non-Regular</option><option value="modular">Modular</option></select></div>
-                            <div class="col-md-4"><label>Current Semester</label><input type="number" class="form-control" id="currentSemester" value="${studentData.semester || 3}"></div>
-                            <div class="col-md-4"><label>Total Semesters</label><input type="number" class="form-control" id="totalSemesters" value="8"></div></div>
-                            <div class="row mt-2"><div class="col-md-3"><label>Assignments %</label><input type="range" class="form-range" id="semAssignments" value="${studentData.assignments || 75}"><span id="semAssignmentsVal">${studentData.assignments || 75}%</span></div>
-                            <div class="col-md-3"><label>Attendance %</label><input type="range" class="form-range" id="semAttendance" value="${studentData.attendance || 80}"><span id="semAttendanceVal">${studentData.attendance || 80}%</span></div>
-                            <div class="col-md-3"><label>Engagement %</label><input type="range" class="form-range" id="semEngagement" value="70"><span id="semEngagementVal">70%</span></div>
-                            <div class="col-md-3"><label>Parental Level</label><select class="form-select" id="semParental"><option value="none">None</option><option value="primary">Primary</option><option value="secondary" selected>Secondary</option><option value="tertiary">Tertiary</option><option value="postgraduate">Postgraduate</option></select></div></div>
-                            <div class="row mt-2"><div class="col-md-6"><label>Study Hours/Week</label><input type="range" class="form-range" id="semStudyHours" value="${studentData.study_hours || 12}"><span id="semStudyHoursVal">${studentData.study_hours || 12} hrs</span></div>
-                            <div class="col-md-6"><label>Previous GPA</label><input type="number" step="0.1" class="form-control" id="semPreviousGpa" value="${studentData.previous_gpa || 3.0}"></div></div>
-                        </div>
+    async function loadCoursesForPredict() {
+        const token = localStorage.getItem('token');
+        const courseSelect = document.getElementById('predictCourseSelect');
+        if (!courseSelect) { console.warn('predictCourseSelect not found'); return; }
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/lecturer/courses/manage?token=${token}`);
+            const courses = await response.json();
+            courseSelect.innerHTML = '<option value="">Select a course</option>' + courses.map(c => `<option value="${c.id}">${c.course_code} - ${c.course_name}</option>`).join('');
+            courseSelect.onchange = async function() {
+                const courseId = this.value;
+                const studentSelect = document.getElementById('predictStudentSelect');
+                if (!courseId) { studentSelect.innerHTML = '<option value="">Select a course first</option>'; studentSelect.disabled = true; document.getElementById('loadStudentDataBtn').disabled = true; return; }
+                const res = await fetch(`${API_BASE_URL}/api/lecturer/courses/${courseId}/students?token=${token}`);
+                const data = await res.json();
+                if (data.students && data.students.length > 0) {
+                    studentSelect.innerHTML = '<option value="">Select a student</option>' + data.students.map(s => `<option value="${s.student_id}" data-name="${s.full_name}">${s.student_id} - ${s.full_name}</option>`).join('');
+                    studentSelect.disabled = false;
+                } else { studentSelect.innerHTML = '<option value="">No students enrolled</option>'; studentSelect.disabled = true; }
+                document.getElementById('loadStudentDataBtn').disabled = true;
+            };
+            document.getElementById('predictStudentSelect').onchange = function() {
+                document.getElementById('loadStudentDataBtn').disabled = !this.value;
+                if (this.value) { const opt = this.options[this.selectedIndex]; selectedStudent = { student_id: this.value, full_name: opt.dataset.name }; }
+            };
+        } catch (error) { console.error('loadCoursesForPredict error:', error); }
+    }
+
+    function goToPredict(studentId, studentName) {
+        document.getElementById('predict-tab').click();
+        selectedStudent = { student_id: studentId, full_name: studentName };
+        document.getElementById('loadStudentDataBtn').disabled = false;
+    }
+
+    document.getElementById('loadStudentDataBtn').addEventListener('click', async function() {
+        if (!selectedStudent) return;
+        const container = document.getElementById('predictionFormContainer');
+        container.innerHTML = '<div class="text-center"><div class="spinner-border"></div><p>Loading prediction form...</p></div>';
+        const token = localStorage.getItem('token');
+        try {
+            const dataRes = await fetch(`${API_BASE_URL}/api/student/predict/data?student_id=${selectedStudent.student_id}&token=${token}`);
+            const sd = await dataRes.json();
+            container.innerHTML = `
+                <div class="alert alert-info">Predicting for: <strong>${selectedStudent.full_name} (${selectedStudent.student_id})</strong></div>
+                <div class="format-card"><div class="format-header">FORMAT 1: SEMESTER (40%)</div><div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4"><label>Semester Type</label><select class="form-select" id="semesterType"><option value="regular">Regular</option><option value="non-regular">Non-Regular</option><option value="modular">Modular</option></select></div>
+                        <div class="col-md-4"><label>Current Semester</label><input type="number" class="form-control" id="currentSemester" value="${sd.semester||3}"></div>
+                        <div class="col-md-4"><label>Total Semesters</label><input type="number" class="form-control" id="totalSemesters" value="8"></div>
                     </div>
-                    
-                    <!-- FORMAT 2: WEEKLY -->
-                    <div class="format-card">
-                        <div class="format-header">📆 FORMAT 2: WEEKLY FORMAT (30% Weight)</div>
-                        <div class="card-body">
-                            <div class="row"><div class="col-md-3"><label>Week Number</label><input type="number" class="form-control" id="weekNumber" value="8"></div>
-                            <div class="col-md-3"><label>Total Weeks</label><input type="number" class="form-control" id="totalWeeks" value="16"></div>
-                            <div class="col-md-3"><label>Consistency %</label><input type="range" class="form-range" id="consistency" value="70"><span id="consistencyVal">70%</span></div>
-                            <div class="col-md-3"><label>Parental Level</label><select class="form-select" id="weekParental"><option value="none">None</option><option value="primary">Primary</option><option value="secondary" selected>Secondary</option><option value="tertiary">Tertiary</option><option value="postgraduate">Postgraduate</option></select></div></div>
-                            <div class="row mt-2"><div class="col-md-3"><label>Assignments %</label><input type="range" class="form-range" id="weekAssignments" value="70"><span id="weekAssignmentsVal">70%</span></div>
-                            <div class="col-md-3"><label>Attendance %</label><input type="range" class="form-range" id="weekAttendance" value="75"><span id="weekAttendanceVal">75%</span></div>
-                            <div class="col-md-3"><label>Engagement %</label><input type="range" class="form-range" id="weekEngagement" value="65"><span id="weekEngagementVal">65%</span></div>
-                            <div class="col-md-3"><label>Study Hours</label><input type="range" class="form-range" id="weekStudyHours" value="10"><span id="weekStudyHoursVal">10 hrs</span></div></div>
-                        </div>
+                    <div class="row mt-2">
+                        <div class="col-md-3"><label>Assignments %</label><input type="range" class="form-range" id="semAssignments" value="${sd.assignments||75}"><span id="semAssignmentsVal">${sd.assignments||75}%</span></div>
+                        <div class="col-md-3"><label>Attendance %</label><input type="range" class="form-range" id="semAttendance" value="${sd.attendance||80}"><span id="semAttendanceVal">${sd.attendance||80}%</span></div>
+                        <div class="col-md-3"><label>Engagement %</label><input type="range" class="form-range" id="semEngagement" value="70"><span id="semEngagementVal">70%</span></div>
+                        <div class="col-md-3"><label>Parental Level</label><select class="form-select" id="semParental"><option value="none">None</option><option value="primary">Primary</option><option value="secondary" selected>Secondary</option><option value="tertiary">Tertiary</option><option value="postgraduate">Postgraduate</option></select></div>
                     </div>
-                    
-                    <!-- FORMAT 3: MODULE -->
-                    <div class="format-card">
-                        <div class="format-header">📘 FORMAT 3: MODULE FORMAT (30% Weight)</div>
-                        <div class="card-body">
-                            <div class="row"><div class="col-md-3"><label>Module Code</label><input type="text" class="form-control" id="moduleCode" value="${studentData.course_code || 'ITE301'}"></div>
-                            <div class="col-md-3"><label>Module Type</label><select class="form-select" id="moduleType"><option value="core">Core</option><option value="elective">Elective</option></select></div>
-                            <div class="col-md-3"><label>Credit Hours</label><input type="number" class="form-control" id="creditHours" value="3"></div>
-                            <div class="col-md-3"><label>Parental Level</label><select class="form-select" id="modParental"><option value="none">None</option><option value="primary">Primary</option><option value="secondary" selected>Secondary</option><option value="tertiary">Tertiary</option><option value="postgraduate">Postgraduate</option></select></div></div>
-                            <div class="row mt-2"><div class="col-md-3"><label>Assignments %</label><input type="range" class="form-range" id="modAssignments" value="80"><span id="modAssignmentsVal">80%</span></div>
-                            <div class="col-md-3"><label>Attendance %</label><input type="range" class="form-range" id="modAttendance" value="85"><span id="modAttendanceVal">85%</span></div>
-                            <div class="col-md-3"><label>Engagement %</label><input type="range" class="form-range" id="modEngagement" value="75"><span id="modEngagementVal">75%</span></div>
-                            <div class="col-md-3"><label>Study Hours</label><input type="range" class="form-range" id="modStudyHours" value="8"><span id="modStudyHoursVal">8 hrs</span></div></div>
-                        </div>
+                    <div class="row mt-2">
+                        <div class="col-md-6"><label>Study Hours/Week</label><input type="range" class="form-range" id="semStudyHours" value="${sd.study_hours||12}"><span id="semStudyHoursVal">${sd.study_hours||12} hrs</span></div>
+                        <div class="col-md-6"><label>Previous GPA</label><input type="number" step="0.1" class="form-control" id="semPreviousGpa" value="${sd.previous_gpa||3.0}"></div>
                     </div>
-                    
-                    <button class="btn btn-primary w-100 mt-3" id="lecturerPredictBtn">🔮 PREDICT STUDENT PERFORMANCE (All 3 Formats)</button>
-                    <div id="predictionResult" class="prediction-result" style="display: none;"></div>
-                `;
-                
-                // Setup range sliders
-                const setupSlider = (id, displayId) => {
-                    const el = document.getElementById(id);
-                    if(el) el.addEventListener('input', () => { const d = document.getElementById(displayId); if(d) d.textContent = el.value + (id.includes('Hours') ? ' hrs' : '%'); });
-                };
-                setupSlider('semAssignments', 'semAssignmentsVal'); setupSlider('semAttendance', 'semAttendanceVal'); setupSlider('semEngagement', 'semEngagementVal'); setupSlider('semStudyHours', 'semStudyHoursVal');
-                setupSlider('weekAssignments', 'weekAssignmentsVal'); setupSlider('weekAttendance', 'weekAttendanceVal'); setupSlider('weekEngagement', 'weekEngagementVal'); setupSlider('weekStudyHours', 'weekStudyHoursVal');
-                setupSlider('consistency', 'consistencyVal'); setupSlider('modAssignments', 'modAssignmentsVal'); setupSlider('modAttendance', 'modAttendanceVal'); setupSlider('modEngagement', 'modEngagementVal'); setupSlider('modStudyHours', 'modStudyHoursVal');
-                
-                document.getElementById('lecturerPredictBtn').addEventListener('click', async function() {
-                    const predictionData = {
-                        student_id: selectedStudent.student_id,
-                        semester: { semester_type: document.getElementById('semesterType').value, current_semester: parseInt(document.getElementById('currentSemester').value), total_semesters: parseInt(document.getElementById('totalSemesters').value), assignments: parseInt(document.getElementById('semAssignments').value), attendance: parseInt(document.getElementById('semAttendance').value), engagement: parseInt(document.getElementById('semEngagement').value), parental_level: document.getElementById('semParental').value, study_hours: parseInt(document.getElementById('semStudyHours').value), previous_gpa: parseFloat(document.getElementById('semPreviousGpa').value) },
-                        weekly: { week_number: parseInt(document.getElementById('weekNumber').value), total_weeks: parseInt(document.getElementById('totalWeeks').value), assignments: parseInt(document.getElementById('weekAssignments').value), attendance: parseInt(document.getElementById('weekAttendance').value), engagement: parseInt(document.getElementById('weekEngagement').value), parental_level: document.getElementById('weekParental').value, study_hours: parseInt(document.getElementById('weekStudyHours').value), consistency: parseInt(document.getElementById('consistency').value), semester_type: document.getElementById('semesterType').value },
-                        module: { module_code: document.getElementById('moduleCode').value, module_type: document.getElementById('moduleType').value, credit_hours: parseInt(document.getElementById('creditHours').value), assignments: parseInt(document.getElementById('modAssignments').value), attendance: parseInt(document.getElementById('modAttendance').value), engagement: parseInt(document.getElementById('modEngagement').value), parental_level: document.getElementById('modParental').value, study_hours: parseInt(document.getElementById('modStudyHours').value), semester_type: document.getElementById('semesterType').value },
-                        previous_gpa: parseFloat(document.getElementById('semPreviousGpa').value)
-                    };
-                    
-                    const btn = document.getElementById('lecturerPredictBtn');
-                    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Predicting...';
-                    btn.disabled = true;
-                    
-                    try {
-                        const response = await fetch(`${API_BASE_URL}/api/predict-three-format?token=${localStorage.getItem('token')}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(predictionData) });
-                        const result = await response.json();
-                        if (response.ok) {
-                            document.getElementById('predictionResult').innerHTML = `
-                                <h5>📈 Prediction Result for ${selectedStudent.full_name}</h5>
-                                <div class="row"><div class="col-md-6"><p><strong>🎓 Predicted Grade:</strong> <span class="display-4">${result.predicted_grade}</span></p>
-                                <p><strong>📝 Grade Description:</strong> ${result.grade_description || 'Grade predicted'}</p>
-                                <p><strong>📊 Confidence:</strong> ${result.confidence}%</p>
-                                <div class="progress mb-2"><div class="progress-bar" style="width: ${result.confidence}%"></div></div></div>
-                                <div class="col-md-6"><div class="card bg-light"><div class="card-body"><h6>📊 Format Scores</h6><div>Semester: ${result.scores.semester_format}/4.0</div><div>Weekly: ${result.scores.weekly_format}/4.0</div><div>Module: ${result.scores.module_format}/4.0</div></div></div></div></div>
-                                <p><strong>💡 Recommendations:</strong> ${result.recommendations}</p>
-                            `;
-                            document.getElementById('predictionResult').style.display = 'block';
-                        } else { alert('Prediction failed'); }
-                    } catch(err) { alert('Network error'); }
-                    finally { btn.innerHTML = '🔮 PREDICT STUDENT PERFORMANCE (All 3 Formats)'; btn.disabled = false; }
-                });
-            } catch(error) { console.error('Error:', error); container.innerHTML = '<p class="text-danger">Error loading prediction form</p>'; }
-        });
+                </div></div>
+                <div class="format-card"><div class="format-header">FORMAT 2: WEEKLY (30%)</div><div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3"><label>Week Number</label><input type="number" class="form-control" id="weekNumber" value="8"></div>
+                        <div class="col-md-3"><label>Total Weeks</label><input type="number" class="form-control" id="totalWeeks" value="16"></div>
+                        <div class="col-md-3"><label>Consistency %</label><input type="range" class="form-range" id="consistency" value="70"><span id="consistencyVal">70%</span></div>
+                        <div class="col-md-3"><label>Parental Level</label><select class="form-select" id="weekParental"><option value="none">None</option><option value="primary">Primary</option><option value="secondary" selected>Secondary</option><option value="tertiary">Tertiary</option><option value="postgraduate">Postgraduate</option></select></div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-3"><label>Assignments %</label><input type="range" class="form-range" id="weekAssignments" value="70"><span id="weekAssignmentsVal">70%</span></div>
+                        <div class="col-md-3"><label>Attendance %</label><input type="range" class="form-range" id="weekAttendance" value="75"><span id="weekAttendanceVal">75%</span></div>
+                        <div class="col-md-3"><label>Engagement %</label><input type="range" class="form-range" id="weekEngagement" value="65"><span id="weekEngagementVal">65%</span></div>
+                        <div class="col-md-3"><label>Study Hours</label><input type="range" class="form-range" id="weekStudyHours" value="10"><span id="weekStudyHoursVal">10 hrs</span></div>
+                    </div>
+                </div></div>
+                <div class="format-card"><div class="format-header">FORMAT 3: MODULE (30%)</div><div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3"><label>Module Code</label><input type="text" class="form-control" id="moduleCode" value="${sd.course_code||'ITE301'}"></div>
+                        <div class="col-md-3"><label>Module Type</label><select class="form-select" id="moduleType"><option value="core">Core</option><option value="elective">Elective</option></select></div>
+                        <div class="col-md-3"><label>Credit Hours</label><input type="number" class="form-control" id="creditHours" value="3"></div>
+                        <div class="col-md-3"><label>Parental Level</label><select class="form-select" id="modParental"><option value="none">None</option><option value="primary">Primary</option><option value="secondary" selected>Secondary</option><option value="tertiary">Tertiary</option><option value="postgraduate">Postgraduate</option></select></div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-3"><label>Assignments %</label><input type="range" class="form-range" id="modAssignments" value="80"><span id="modAssignmentsVal">80%</span></div>
+                        <div class="col-md-3"><label>Attendance %</label><input type="range" class="form-range" id="modAttendance" value="85"><span id="modAttendanceVal">85%</span></div>
+                        <div class="col-md-3"><label>Engagement %</label><input type="range" class="form-range" id="modEngagement" value="75"><span id="modEngagementVal">75%</span></div>
+                        <div class="col-md-3"><label>Study Hours</label><input type="range" class="form-range" id="modStudyHours" value="8"><span id="modStudyHoursVal">8 hrs</span></div>
+                    </div>
+                </div></div>
+                <button class="btn btn-primary w-100 mt-3" id="lecturerPredictBtn">PREDICT STUDENT PERFORMANCE (All 3 Formats)</button>
+                <div id="predictionResult" class="prediction-result mt-3" style="display:none;"></div>`;
+            ['semAssignments','semAttendance','semEngagement','semStudyHours','weekAssignments','weekAttendance','weekEngagement','weekStudyHours','consistency','modAssignments','modAttendance','modEngagement','modStudyHours'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.addEventListener('input', () => { const d = document.getElementById(id+'Val'); if(d) d.textContent = el.value + (id.includes('Hours') ? ' hrs' : '%'); });
+            });
+            document.getElementById('lecturerPredictBtn').addEventListener('click', async function() {
+                const pd = { student_id: selectedStudent.student_id, semester: { semester_type: document.getElementById('semesterType').value, current_semester: parseInt(document.getElementById('currentSemester').value), total_semesters: parseInt(document.getElementById('totalSemesters').value), assignments: parseInt(document.getElementById('semAssignments').value), attendance: parseInt(document.getElementById('semAttendance').value), engagement: parseInt(document.getElementById('semEngagement').value), parental_level: document.getElementById('semParental').value, study_hours: parseInt(document.getElementById('semStudyHours').value), previous_gpa: parseFloat(document.getElementById('semPreviousGpa').value) }, weekly: { week_number: parseInt(document.getElementById('weekNumber').value), total_weeks: parseInt(document.getElementById('totalWeeks').value), assignments: parseInt(document.getElementById('weekAssignments').value), attendance: parseInt(document.getElementById('weekAttendance').value), engagement: parseInt(document.getElementById('weekEngagement').value), parental_level: document.getElementById('weekParental').value, study_hours: parseInt(document.getElementById('weekStudyHours').value), consistency: parseInt(document.getElementById('consistency').value), semester_type: document.getElementById('semesterType').value }, module: { module_code: document.getElementById('moduleCode').value, module_type: document.getElementById('moduleType').value, credit_hours: parseInt(document.getElementById('creditHours').value), assignments: parseInt(document.getElementById('modAssignments').value), attendance: parseInt(document.getElementById('modAttendance').value), engagement: parseInt(document.getElementById('modEngagement').value), parental_level: document.getElementById('modParental').value, study_hours: parseInt(document.getElementById('modStudyHours').value), semester_type: document.getElementById('semesterType').value }, previous_gpa: parseFloat(document.getElementById('semPreviousGpa').value) };
+                const btn = document.getElementById('lecturerPredictBtn'); btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Predicting...'; btn.disabled = true;
+                try {
+                    const res = await fetch(`${API_BASE_URL}/api/predict-three-format?token=${localStorage.getItem('token')}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pd) });
+                    const result = await res.json();
+                    if (res.ok) {
+                        document.getElementById('predictionResult').innerHTML = `<h5>Result for ${selectedStudent.full_name}</h5><div class="row"><div class="col-md-6"><p><strong>Predicted Grade:</strong> <span class="display-4">${result.predicted_grade}</span></p><p><strong>Confidence:</strong> ${result.confidence}%</p><div class="progress mb-2"><div class="progress-bar" style="width:${result.confidence}%"></div></div></div><div class="col-md-6"><div class="card bg-light"><div class="card-body"><h6>Format Scores</h6><div>Semester: ${result.scores?.semester_format}/4.0</div><div>Weekly: ${result.scores?.weekly_format}/4.0</div><div>Module: ${result.scores?.module_format}/4.0</div></div></div></div></div><p><strong>Recommendations:</strong> ${result.recommendations}</p>`;
+                        document.getElementById('predictionResult').style.display = 'block';
+                    } else { alert('Prediction failed: ' + res.status); }
+                } catch(err) { alert('Network error: ' + err.message); }
+                finally { btn.innerHTML = 'PREDICT STUDENT PERFORMANCE (All 3 Formats)'; btn.disabled = false; }
+            });
+        } catch(error) { container.innerHTML = '<p class="text-danger">Error: ' + error.message + '</p>'; }
+    });
 
-        async function showCourseDetails(courseId) {
-            const token = localStorage.getItem('token');
-            const modalContent = document.getElementById('courseDetailsContent');
-            modalContent.innerHTML = '<div class="text-center">Loading...</div>';
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/lecturer/courses/${courseId}/students?token=${token}`);
-                const data = await response.json();
-                modalContent.innerHTML = `<h6>${data.course.course_code} - ${data.course.course_name}</h6><p>Enrolled: ${data.total_students}/${data.course.capacity}</p><table class="table table-sm"><thead><tr><th>Student ID</th><th>Name</th><th>Email</th></tr></thead><tbody>${data.students.map(s => `<tr><td>${s.student_id}</td><td>${s.full_name}</td><td>${s.email}</td></tr>`).join('')}</tbody></table>`;
-                new bootstrap.Modal(document.getElementById('courseDetailsModal')).show();
-            } catch(error) { modalContent.innerHTML = '<p class="text-danger">Error</p>'; }
-        }
+    async function showCourseDetails(courseId) {
+        const token = localStorage.getItem('token');
+        const modalContent = document.getElementById('courseDetailsContent');
+        modalContent.innerHTML = '<div class="text-center"><div class="spinner-border"></div></div>';
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/lecturer/courses/${courseId}/students?token=${token}`);
+            const data = await res.json();
+            modalContent.innerHTML = `<h6>${data.course.course_code} - ${data.course.course_name}</h6><p>Enrolled: ${data.total_students}/${data.course.capacity}</p><table class="table table-sm"><thead><tr><th>Student ID</th><th>Name</th><th>Email</th></tr></thead><tbody>${data.students.map(s=>`<tr><td>${s.student_id}</td><td>${s.full_name}</td><td>${s.email}</td></tr>`).join('')}</tbody></table>`;
+            new bootstrap.Modal(document.getElementById('courseDetailsModal')).show();
+        } catch(error) { modalContent.innerHTML = '<p class="text-danger">Error loading details</p>'; }
+    }
 
-        async function loadAlerts() { /* same as before */ }
-        async function loadAnalytics() { /* same as before */ }
+    async function loadAlerts() {
+        const token = localStorage.getItem('token');
+        const container = document.getElementById('alertsList');
+        if (!container) return;
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/lecturer/alerts?token=${token}`);
+            const alerts = await res.json();
+            if (alerts && alerts.length > 0) {
+                container.innerHTML = alerts.map(a => `<div class="alert alert-warning d-flex justify-content-between align-items-center"><div><strong>${a.student_name||a.student_id}</strong> - ${a.message||'At risk of failing'}</div><button class="btn btn-sm btn-primary" onclick="goToPredict('${a.student_id}','${a.student_name}')">Predict</button></div>`).join('');
+            } else { container.innerHTML = '<p class="text-center text-muted">No at-risk alerts at this time.</p>'; }
+        } catch (error) { container.innerHTML = '<p class="text-center text-danger">Could not load alerts.</p>'; }
+    }
 
-        document.getElementById('createCourseForm')?.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const token = localStorage.getItem('token');
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/lecturer/courses/create?token=${token}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ course_code: document.getElementById('courseCode').value, course_name: document.getElementById('courseName').value, credits: parseInt(document.getElementById('credits').value), capacity: parseInt(document.getElementById('capacity').value), semester: "2024/2025" }) });
-                if(response.ok) { alert('Course created!'); bootstrap.Modal.getInstance(document.getElementById('createCourseModal')).hide(); loadMyCourses(); } else { alert('Error'); }
-            } catch(err) { alert('Network error'); }
-        });
+    async function loadAnalytics() {
+        const token = localStorage.getItem('token');
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/lecturer/analytics?token=${token}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            if (gradeChart) gradeChart.destroy();
+            const gradeCtx = document.getElementById('gradeChart');
+            if (gradeCtx) { gradeChart = new Chart(gradeCtx, { type: 'bar', data: { labels: data.grade_labels||['A','B','C','D','F'], datasets: [{ label: 'Grade Distribution', data: data.grade_counts||[0,0,0,0,0], backgroundColor: ['#28a745','#17a2b8','#ffc107','#fd7e14','#dc3545'] }] }, options: { responsive: true, plugins: { legend: { display: false }, title: { display: true, text: 'Grade Distribution' } } } }); }
+            if (riskChart) riskChart.destroy();
+            const riskCtx = document.getElementById('riskChart');
+            if (riskCtx) { riskChart = new Chart(riskCtx, { type: 'doughnut', data: { labels: ['Low Risk','Medium Risk','High Risk'], datasets: [{ data: [data.low_risk||0,data.medium_risk||0,data.high_risk||0], backgroundColor: ['#28a745','#fd7e14','#dc3545'] }] }, options: { responsive: true, plugins: { title: { display: true, text: 'Risk Level Overview' } } } }); }
+        } catch (error) { console.error('Analytics error:', error); }
+    }
 
-        document.getElementById('logoutBtn').addEventListener('click', () => { localStorage.removeItem('token'); window.location.href = 'login.html'; });
-        if(checkAuth()) loadDashboard();
+    document.getElementById('createCourseForm')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const token = localStorage.getItem('token');
+        const btn = this.querySelector('button[type="submit"]');
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Creating...';
+        btn.disabled = true;
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/lecturer/courses/create?token=${token}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ course_code: document.getElementById('courseCode').value, course_name: document.getElementById('courseName').value, credits: parseInt(document.getElementById('credits').value), capacity: parseInt(document.getElementById('capacity').value), semester: "2024/2025" }) });
+            if (res.ok) {
+                alert('Course created successfully!');
+                const modalEl = document.getElementById('createCourseModal');
+                (bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl)).hide();
+                this.reset();
+                loadMyCourses();
+            } else {
+                const err = await res.json().catch(()=>({}));
+                alert('Error: ' + (err.message || res.status));
+            }
+        } catch(err) { alert('Network error: ' + err.message); }
+        finally { btn.innerHTML = 'Create Course'; btn.disabled = false; }
+    });
 
-document.getElementById('courses-tab').addEventListener('shown.bs.tab', function() {
-    loadMyCourses();
-});
+    document.getElementById('logoutBtn').addEventListener('click', () => { localStorage.removeItem('token'); window.location.href = 'login.html'; });
+    document.getElementById('courses-tab').addEventListener('shown.bs.tab', () => loadMyCourses());
+    document.getElementById('predict-tab').addEventListener('shown.bs.tab', () => loadCoursesForPredict());
+    document.getElementById('alerts-tab').addEventListener('shown.bs.tab', () => loadAlerts());
+    document.getElementById('analytics-tab').addEventListener('shown.bs.tab', () => loadAnalytics());
 
-document.getElementById('predict-tab').addEventListener('shown.bs.tab', function() {
-    loadCoursesForPredict();
-});
-    </script>
+    if(checkAuth()) loadDashboard();
+</script>
 </body>
 </html>
-
-
-
