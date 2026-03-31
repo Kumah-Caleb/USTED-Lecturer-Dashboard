@@ -7,66 +7,28 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f6f9;
-        }
-        .navbar-custom {
-            background-color: #003366;
-            color: white;
-        }
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-        }
-        .stat-card:hover {
-            transform: translateY(-3px);
-        }
-        .stat-number {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #003366;
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; }
+        .navbar-custom { background-color: #003366; color: white; }
+        .stat-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-3px); }
+        .stat-number { font-size: 2rem; font-weight: bold; color: #003366; }
         .risk-high { background-color: #dc3545; color: white; }
         .risk-medium { background-color: #fd7e14; color: white; }
         .risk-low { background-color: #28a745; color: white; }
-        .prediction-badge {
-            font-weight: bold;
-            padding: 4px 12px;
-            border-radius: 20px;
-        }
+        .prediction-badge { font-weight: bold; padding: 4px 12px; border-radius: 20px; }
         .grade-A { background-color: #d4edda; color: #155724; }
         .grade-B { background-color: #d1ecf1; color: #0c5460; }
         .grade-C { background-color: #fff3cd; color: #856404; }
         .grade-D { background-color: #f8d7da; color: #721c24; }
         .grade-F { background-color: #f8d7da; color: #721c24; }
-        .student-row {
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        .student-row:hover {
-            background-color: #f0f8ff;
-        }
-        .alert-warning-custom {
-            background-color: #fff3cd;
-            border-left: 4px solid #ffc107;
-        }
-        .alert-danger-custom {
-            background-color: #f8d7da;
-            border-left: 4px solid #dc3545;
-        }
+        .student-row { cursor: pointer; transition: background-color 0.2s; }
+        .student-row:hover { background-color: #f0f8ff; }
     </style>
 </head>
 <body>
     <nav class="navbar navbar-custom navbar-expand-lg">
         <div class="container">
-            <a class="navbar-brand text-white" href="#">
-                <strong>USTED</strong> | Lecturer Dashboard
-            </a>
+            <a class="navbar-brand text-white" href="#"><strong>USTED</strong> | Lecturer Dashboard</a>
             <div class="ms-auto">
                 <span id="lecturerName" class="text-white me-3">Lecturer</span>
                 <button id="logoutBtn" class="btn btn-outline-light btn-sm">Logout</button>
@@ -81,7 +43,7 @@
                 <div class="card" style="background-color: #003366; color: white;">
                     <div class="card-body">
                         <h3 id="welcomeMsg">Welcome, Dr. Lecturer!</h3>
-                        <p>Monitor your students' academic performance and identify at-risk students early.</p>
+                        <p>Monitor students, create courses, and track performance.</p>
                     </div>
                 </div>
             </div>
@@ -89,337 +51,175 @@
 
         <!-- Statistics Cards -->
         <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="stat-card text-center">
-                    <h6>Total Students</h6>
-                    <div class="stat-number" id="totalStudents">0</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card text-center">
-                    <h6>At-Risk Students</h6>
-                    <div class="stat-number text-danger" id="atRiskCount">0</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card text-center">
-                    <h6>Avg Predicted GPA</h6>
-                    <div class="stat-number" id="avgGpa">0.00</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card text-center">
-                    <h6>Total Predictions</h6>
-                    <div class="stat-number" id="totalPredictions">0</div>
-                </div>
-            </div>
+            <div class="col-md-3"><div class="stat-card text-center"><h6>Total Students</h6><div class="stat-number" id="totalStudents">0</div></div></div>
+            <div class="col-md-3"><div class="stat-card text-center"><h6>At-Risk Students</h6><div class="stat-number text-danger" id="atRiskCount">0</div></div></div>
+            <div class="col-md-3"><div class="stat-card text-center"><h6>Avg Predicted GPA</h6><div class="stat-number" id="avgGpa">0.00</div></div></div>
+            <div class="col-md-3"><div class="stat-card text-center"><h6>Total Predictions</h6><div class="stat-number" id="totalPredictions">0</div></div></div>
         </div>
 
         <!-- Tabs -->
         <ul class="nav nav-tabs mb-3" id="dashboardTab" role="tablist">
-            <li class="nav-item">
-                <button class="nav-link active" id="students-tab" data-bs-toggle="tab" data-bs-target="#students" type="button">📚 Students List</button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link" id="courses-tab" data-bs-toggle="tab" data-bs-target="#courses" type="button">📖 My Courses</button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link" id="alerts-tab" data-bs-toggle="tab" data-bs-target="#alerts" type="button">⚠️ At-Risk Alerts</button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button">📊 Analytics</button>
-            </li>
+            <li class="nav-item"><button class="nav-link active" id="students-tab" data-bs-toggle="tab" data-bs-target="#students" type="button">📚 Students List</button></li>
+            <li class="nav-item"><button class="nav-link" id="courses-tab" data-bs-toggle="tab" data-bs-target="#courses" type="button">📖 My Courses</button></li>
+            <li class="nav-item"><button class="nav-link" id="manage-tab" data-bs-toggle="tab" data-bs-target="#manage" type="button">➕ Create Course</button></li>
+            <li class="nav-item"><button class="nav-link" id="roster-tab" data-bs-toggle="tab" data-bs-target="#roster" type="button">👥 Course Roster</button></li>
+            <li class="nav-item"><button class="nav-link" id="alerts-tab" data-bs-toggle="tab" data-bs-target="#alerts" type="button">⚠️ At-Risk Alerts</button></li>
+            <li class="nav-item"><button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button">📊 Analytics</button></li>
         </ul>
 
         <div class="tab-content">
             <!-- Students Tab -->
             <div class="tab-pane fade show active" id="students">
-                <div class="card">
-                    <div class="card-header bg-white">
-                        <h5 class="mb-0">Student Performance Overview</h5>
+                <div class="card"><div class="card-header bg-white"><h5 class="mb-0">Student Performance Overview</h5></div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover"><thead><tr><th>Student ID</th><th>Name</th><th>Course</th><th>Latest Prediction</th><th>Confidence</th><th>Risk Level</th><th>Last Active</th></tr></thead>
+                        <tbody id="studentsTable"><tr><td colspan="7" class="text-center">Loading students...</td></tr></tbody></table>
                     </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Student ID</th>
-                                        <th>Name</th>
-                                        <th>Course</th>
-                                        <th>Latest Prediction</th>
-                                        <th>Confidence</th>
-                                        <th>Risk Level</th>
-                                        <th>Last Active</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="studentsTable">
-                                    <tr><td colspan="7" class="text-center">Loading students...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+                </div></div>
             </div>
 
-            <!-- Courses Tab -->
+            <!-- My Courses Tab -->
             <div class="tab-pane fade" id="courses">
-                <div class="card">
-                    <div class="card-header bg-white">
-                        <h5 class="mb-0">My Courses</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="coursesList">
-                            <p class="text-center">Loading courses...</p>
+                <div class="card"><div class="card-header bg-white"><h5 class="mb-0">My Created Courses</h5></div>
+                <div class="card-body"><div id="myCoursesList"><p class="text-center">Loading courses...</p></div></div></div>
+            </div>
+
+            <!-- Create Course Tab -->
+            <div class="tab-pane fade" id="manage">
+                <div class="card"><div class="card-header bg-primary text-white"><h6 class="mb-0">📝 Create New Course</h6></div>
+                <div class="card-body">
+                    <form id="createCourseForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-2"><label class="form-label small">Course Code</label><input type="text" class="form-control" id="courseCode" placeholder="e.g., ITE401" required></div>
+                            <div class="col-md-6 mb-2"><label class="form-label small">Course Name</label><input type="text" class="form-control" id="courseName" placeholder="e.g., Advanced Topics" required></div>
                         </div>
-                    </div>
-                </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-2"><label class="form-label small">Credits</label><select class="form-select" id="credits"><option value="1">1 Credit</option><option value="2">2 Credits</option><option value="3" selected>3 Credits</option><option value="4">4 Credits</option><option value="6">6 Credits</option></select></div>
+                            <div class="col-md-4 mb-2"><label class="form-label small">Capacity</label><input type="number" class="form-control" id="capacity" value="30" min="5" max="200"></div>
+                            <div class="col-md-4 mb-2"><label class="form-label small">Semester</label><input type="text" class="form-control" id="semester" value="2024/2025"></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 mt-2">➕ Create Course</button>
+                    </form>
+                </div></div>
+            </div>
+
+            <!-- Course Roster Tab -->
+            <div class="tab-pane fade" id="roster">
+                <div class="card"><div class="card-header bg-white"><h5 class="mb-0">Course Roster - Enrolled Students</h5></div>
+                <div class="card-body">
+                    <div class="row"><div class="col-md-6"><label class="form-label">Select Course</label><select class="form-select" id="rosterCourseSelect"><option value="">Select a course</option></select></div></div>
+                    <div id="courseRoster" class="mt-3"><p class="text-center text-muted">Select a course to view enrolled students</p></div>
+                </div></div>
             </div>
 
             <!-- Alerts Tab -->
             <div class="tab-pane fade" id="alerts">
-                <div class="card">
-                    <div class="card-header bg-white">
-                        <h5 class="mb-0">⚠️ Students Who Need Attention</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="alertsList">
-                            <p class="text-center">Loading alerts...</p>
-                        </div>
-                    </div>
-                </div>
+                <div class="card"><div class="card-header bg-white"><h5 class="mb-0">⚠️ Students Who Need Attention</h5></div>
+                <div class="card-body"><div id="alertsList"><p class="text-center">Loading alerts...</p></div></div></div>
             </div>
 
             <!-- Analytics Tab -->
             <div class="tab-pane fade" id="analytics">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <div class="card">
-                            <div class="card-header bg-white">
-                                <h6>Grade Distribution</h6>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="gradeChart" height="200"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <div class="card">
-                            <div class="card-header bg-white">
-                                <h6>Risk Level Distribution</h6>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="riskChart" height="200"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <div class="row"><div class="col-md-6 mb-3"><div class="card"><div class="card-header bg-white"><h6>Grade Distribution</h6></div><div class="card-body"><canvas id="gradeChart" height="200"></canvas></div></div></div>
+                <div class="col-md-6 mb-3"><div class="card"><div class="card-header bg-white"><h6>Risk Level Distribution</h6></div><div class="card-body"><canvas id="riskChart" height="200"></canvas></div></div></div></div>
             </div>
         </div>
     </div>
 
-    <footer class="bg-light text-center py-3 mt-4">
-        <div class="container">
-            <p class="mb-0">&copy; 2025 USTED. Lecturer Dashboard v1.0</p>
-            <small>Connected to <a href="https://kumah-caleb.github.io/Research-Project-V.1/" target="_blank">Student Portal</a></small>
-        </div>
-    </footer>
+    <footer class="bg-light text-center py-3 mt-4"><div class="container"><p class="mb-0">&copy; 2025 USTED. Lecturer Dashboard v2.0</p></div></footer>
 
     <script>
         const API_BASE_URL = 'https://aamusted-predictor-backend2.onrender.com';
-        let gradeChart = null;
-        let riskChart = null;
+        let gradeChart = null, riskChart = null;
 
-        // Check authentication
-        function checkAuth() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                window.location.href = 'login.html';
-                return false;
-            }
-            return true;
-        }
+        function checkAuth() { const token = localStorage.getItem('token'); if (!token) { window.location.href = 'login.html'; return false; } return true; }
 
-        // Load dashboard data
         async function loadDashboard() {
             const token = localStorage.getItem('token');
             if (!token) return;
-
             try {
-                // Load lecturer info
                 const lecturerRes = await fetch(`${API_BASE_URL}/api/lecturer/profile?token=${token}`);
-                if (lecturerRes.ok) {
-                    const info = await lecturerRes.json();
-                    document.getElementById('lecturerName').textContent = info.full_name || 'Lecturer';
-                    document.getElementById('welcomeMsg').textContent = `Welcome, ${info.full_name || 'Dr. Lecturer'}!`;
-                }
-
-                // Load stats
+                if (lecturerRes.ok) { const info = await lecturerRes.json(); document.getElementById('lecturerName').textContent = info.full_name || 'Lecturer'; document.getElementById('welcomeMsg').textContent = `Welcome, ${info.full_name || 'Dr. Lecturer'}!`; }
                 const statsRes = await fetch(`${API_BASE_URL}/api/lecturer/stats?token=${token}`);
-                if (statsRes.ok) {
-                    const stats = await statsRes.json();
-                    document.getElementById('totalStudents').textContent = stats.total_students || 0;
-                    document.getElementById('atRiskCount').textContent = stats.at_risk_count || 0;
-                    document.getElementById('avgGpa').textContent = stats.avg_predicted_gpa || '0.00';
-                    document.getElementById('totalPredictions').textContent = stats.total_predictions || 0;
-                }
-
-                // Load students
-                await loadStudents();
-                await loadCourses();
-                await loadAlerts();
-                await loadAnalytics();
-
-            } catch (error) {
-                console.error('Error loading dashboard:', error);
-            }
+                if (statsRes.ok) { const stats = await statsRes.json(); document.getElementById('totalStudents').textContent = stats.total_students || 0; document.getElementById('atRiskCount').textContent = stats.at_risk_count || 0; document.getElementById('avgGpa').textContent = stats.avg_predicted_gpa || '0.00'; document.getElementById('totalPredictions').textContent = stats.total_predictions || 0; }
+                await loadStudents(); await loadMyCourses(); await loadAlerts(); await loadAnalytics();
+            } catch (error) { console.error('Error loading dashboard:', error); }
         }
 
         async function loadStudents() {
-            const token = localStorage.getItem('token');
-            const tbody = document.getElementById('studentsTable');
-
+            const token = localStorage.getItem('token'); const tbody = document.getElementById('studentsTable');
             try {
                 const response = await fetch(`${API_BASE_URL}/api/lecturer/students?token=${token}`);
                 const students = await response.json();
-
                 if (students && students.length > 0) {
-                    tbody.innerHTML = students.map(s => {
-                        const riskClass = s.risk_level === 'high' ? 'risk-high' : (s.risk_level === 'medium' ? 'risk-medium' : 'risk-low');
-                        const gradeClass = `grade-${s.latest_grade ? s.latest_grade[0] : 'C'}`;
-                        return `
-                            <tr>
-                                <td>${s.student_id}</td>
-                                <td>${s.full_name}</td>
-                                <td>${s.course_code || 'N/A'}</td>
-                                <td><span class="prediction-badge ${gradeClass}">${s.latest_grade || 'N/A'}</span></td>
-                                <td>${s.confidence || '0'}%</td>
-                                <td><span class="badge ${riskClass}">${s.risk_level || 'Unknown'}</span></td>
-                                <td>${s.last_active ? new Date(s.last_active).toLocaleDateString() : 'N/A'}</td>
-                            </tr>
-                        `;
-                    }).join('');
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="7" class="text-center">No students found</td></tr>';
-                }
-            } catch (error) {
-                console.error('Error loading students:', error);
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error loading students</td></tr>';
-            }
+                    tbody.innerHTML = students.map(s => { const riskClass = s.risk_level === 'high' ? 'risk-high' : (s.risk_level === 'medium' ? 'risk-medium' : 'risk-low'); const gradeClass = `grade-${s.latest_grade ? s.latest_grade[0] : 'C'}`; return `<tr><td>${s.student_id}</td><td>${s.full_name}</td><td>${s.course_code || 'N/A'}</td><td><span class="prediction-badge ${gradeClass}">${s.latest_grade || 'N/A'}</span></td><td>${s.confidence || '0'}%</td><td><span class="badge ${riskClass}">${s.risk_level || 'Unknown'}</span></td><td>${s.last_active ? new Date(s.last_active).toLocaleDateString() : 'N/A'}</td></tr>`; }).join('');
+                } else { tbody.innerHTML = '<tr><td colspan="7" class="text-center">No students found</td></tr>'; }
+            } catch (error) { console.error('Error loading students:', error); tbody.innerHTML = '<tr><td colspan="7" class="text-danger">Error loading students</td></tr>'; }
         }
 
-        async function loadCourses() {
-            const token = localStorage.getItem('token');
-            const container = document.getElementById('coursesList');
-
+        async function loadMyCourses() {
+            const token = localStorage.getItem('token'); const container = document.getElementById('myCoursesList'); const rosterSelect = document.getElementById('rosterCourseSelect');
             try {
-                const response = await fetch(`${API_BASE_URL}/api/lecturer/courses?token=${token}`);
+                const response = await fetch(`${API_BASE_URL}/api/lecturer/courses/manage?token=${token}`);
                 const courses = await response.json();
-
                 if (courses && courses.length > 0) {
-                    container.innerHTML = `
-                        <div class="row">
-                            ${courses.map(c => `
-                                <div class="col-md-6 mb-3">
-                                    <div class="card">
-                                        <div class="card-body">
-                                            <h6>${c.course_code} - ${c.course_name}</h6>
-                                            <p class="mb-1"><small>Students: ${c.student_count}</small></p>
-                                            <p class="mb-1"><small>Avg Predicted Grade: ${c.avg_grade}</small></p>
-                                            <p class="mb-0"><small>At-Risk: ${c.at_risk_count}</small></p>
-                                        </div>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    `;
-                } else {
-                    container.innerHTML = '<p class="text-center">No courses assigned</p>';
-                }
-            } catch (error) {
-                console.error('Error loading courses:', error);
-                container.innerHTML = '<p class="text-center text-danger">Error loading courses</p>';
-            }
+                    container.innerHTML = courses.map(c => `<div class="alert alert-info mb-2 p-2"><strong>${c.course_code}</strong> - ${c.course_name}<br><small>Credits: ${c.credits} | Enrolled: ${c.enrolled}/${c.capacity} | Semester: ${c.semester}</small></div>`).join('');
+                    rosterSelect.innerHTML = '<option value="">Select a course</option>' + courses.map(c => `<option value="${c.id}">${c.course_code} - ${c.course_name}</option>`).join('');
+                } else { container.innerHTML = '<p class="text-muted">No courses created yet. Create your first course!</p>'; }
+            } catch (error) { console.error('Error loading courses:', error); container.innerHTML = '<p class="text-danger">Error loading courses</p>'; }
         }
+
+        document.getElementById('createCourseForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault(); const token = localStorage.getItem('token');
+            const courseData = { course_code: document.getElementById('courseCode').value, course_name: document.getElementById('courseName').value, credits: parseInt(document.getElementById('credits').value), capacity: parseInt(document.getElementById('capacity').value), semester: document.getElementById('semester').value };
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/lecturer/courses/create?token=${token}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(courseData) });
+                const data = await response.json();
+                if (response.ok) { alert('Course created successfully!'); this.reset(); loadMyCourses(); } else { alert('Error: ' + (data.detail || 'Failed to create course')); }
+            } catch (error) { alert('Network error: ' + error.message); }
+        });
+
+        document.getElementById('rosterCourseSelect')?.addEventListener('change', async function() {
+            const courseId = this.value; const rosterDiv = document.getElementById('courseRoster');
+            if (!courseId) { rosterDiv.innerHTML = '<p class="text-center text-muted">Select a course to view enrolled students</p>'; return; }
+            const token = localStorage.getItem('token'); rosterDiv.innerHTML = '<p class="text-center">Loading students...</p>';
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/lecturer/courses/${courseId}/students?token=${token}`);
+                const data = await response.json();
+                if (response.ok && data.students.length > 0) {
+                    rosterDiv.innerHTML = `<div class="alert alert-info"><strong>${data.course.course_code} - ${data.course.course_name}</strong><br>Total Students: ${data.total_students} / ${data.course.capacity}</div>
+                    <div class="table-responsive"><table class="table table-sm table-hover"><thead><tr><th>Student ID</th><th>Full Name</th><th>Email</th><th>Enrolled On</th></tr></thead><tbody>${data.students.map(s => `<tr><td>${s.student_id}</td><td>${s.full_name}</td><td>${s.email}</td><td>${new Date(s.enrolled_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table></div>`;
+                } else { rosterDiv.innerHTML = '<div class="alert alert-warning">No students enrolled yet</div>'; }
+            } catch (error) { console.error('Error loading roster:', error); rosterDiv.innerHTML = '<p class="text-danger">Error loading students</p>'; }
+        });
 
         async function loadAlerts() {
-            const token = localStorage.getItem('token');
-            const container = document.getElementById('alertsList');
-
+            const token = localStorage.getItem('token'); const container = document.getElementById('alertsList');
             try {
                 const response = await fetch(`${API_BASE_URL}/api/lecturer/alerts?token=${token}`);
                 const alerts = await response.json();
-
-                if (alerts && alerts.length > 0) {
-                    container.innerHTML = alerts.map(a => `
-                        <div class="alert ${a.risk_level === 'high' ? 'alert-danger-custom' : 'alert-warning-custom'} mb-2">
-                            <strong>⚠️ ${a.student_name} (${a.student_id})</strong><br>
-                            <small>Course: ${a.course_code} | Predicted Grade: ${a.predicted_grade} | Confidence: ${a.confidence}%</small><br>
-                            <small class="text-muted">${a.recommendation || 'Needs academic support'}</small>
-                        </div>
-                    `).join('');
-                } else {
-                    container.innerHTML = '<div class="alert alert-success">No at-risk students at the moment</div>';
-                }
-            } catch (error) {
-                console.error('Error loading alerts:', error);
-                container.innerHTML = '<p class="text-center text-danger">Error loading alerts</p>';
-            }
+                if (alerts && alerts.length > 0) { container.innerHTML = alerts.map(a => `<div class="alert ${a.risk_level === 'high' ? 'alert-danger' : 'alert-warning'} mb-2"><strong>⚠️ ${a.student_name} (${a.student_id})</strong><br><small>Course: ${a.course_code} | Predicted Grade: ${a.predicted_grade} | Confidence: ${a.confidence}%</small><br><small class="text-muted">${a.recommendation || 'Needs academic support'}</small></div>`).join(''); }
+                else { container.innerHTML = '<div class="alert alert-success">No at-risk students at the moment</div>'; }
+            } catch (error) { console.error('Error loading alerts:', error); container.innerHTML = '<p class="text-danger">Error loading alerts</p>'; }
         }
 
         async function loadAnalytics() {
             const token = localStorage.getItem('token');
-
             try {
                 const response = await fetch(`${API_BASE_URL}/api/lecturer/analytics?token=${token}`);
                 const data = await response.json();
-
                 if (data) {
-                    // Grade Chart
                     if (gradeChart) gradeChart.destroy();
-                    const gradeCtx = document.getElementById('gradeChart').getContext('2d');
-                    gradeChart = new Chart(gradeCtx, {
-                        type: 'bar',
-                        data: {
-                            labels: ['A', 'B', 'C', 'D', 'F'],
-                            datasets: [{
-                                label: 'Number of Students',
-                                data: [data.grade_a || 0, data.grade_b || 0, data.grade_c || 0, data.grade_d || 0, data.grade_f || 0],
-                                backgroundColor: ['#28a745', '#17a2b8', '#ffc107', '#fd7e14', '#dc3545']
-                            }]
-                        },
-                        options: { responsive: true, maintainAspectRatio: true }
-                    });
-
-                    // Risk Chart
+                    gradeChart = new Chart(document.getElementById('gradeChart'), { type: 'bar', data: { labels: ['A', 'B', 'C', 'D', 'F'], datasets: [{ label: 'Number of Students', data: [data.grade_a || 0, data.grade_b || 0, data.grade_c || 0, data.grade_d || 0, data.grade_f || 0], backgroundColor: ['#28a745', '#17a2b8', '#ffc107', '#fd7e14', '#dc3545'] }] }, options: { responsive: true, maintainAspectRatio: true } });
                     if (riskChart) riskChart.destroy();
-                    const riskCtx = document.getElementById('riskChart').getContext('2d');
-                    riskChart = new Chart(riskCtx, {
-                        type: 'pie',
-                        data: {
-                            labels: ['Low Risk', 'Medium Risk', 'High Risk'],
-                            datasets: [{
-                                data: [data.low_risk || 0, data.medium_risk || 0, data.high_risk || 0],
-                                backgroundColor: ['#28a745', '#ffc107', '#dc3545']
-                            }]
-                        },
-                        options: { responsive: true, maintainAspectRatio: true }
-                    });
+                    riskChart = new Chart(document.getElementById('riskChart'), { type: 'pie', data: { labels: ['Low Risk', 'Medium Risk', 'High Risk'], datasets: [{ data: [data.low_risk || 0, data.medium_risk || 0, data.high_risk || 0], backgroundColor: ['#28a745', '#ffc107', '#dc3545'] }] }, options: { responsive: true, maintainAspectRatio: true } });
                 }
-            } catch (error) {
-                console.error('Error loading analytics:', error);
-            }
+            } catch (error) { console.error('Error loading analytics:', error); }
         }
 
-        // Logout
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            localStorage.removeItem('token');
-            window.location.href = 'login.html';
-        });
-
-        // Initialize
-        if (checkAuth()) {
-            loadDashboard();
-        }
+        document.getElementById('logoutBtn').addEventListener('click', () => { localStorage.removeItem('token'); window.location.href = 'login.html'; });
+        if (checkAuth()) { loadDashboard(); }
     </script>
 </body>
 </html>
