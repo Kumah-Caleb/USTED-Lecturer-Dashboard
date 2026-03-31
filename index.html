@@ -14,9 +14,6 @@
         .stat-number { font-size: 2rem; font-weight: bold; color: #003366; }
         .course-card { transition: transform 0.2s; margin-bottom: 15px; cursor: pointer; }
         .course-card:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .risk-high { background-color: #dc3545; color: white; }
-        .risk-medium { background-color: #fd7e14; color: white; }
-        .risk-low { background-color: #28a745; color: white; }
     </style>
 </head>
 <body>
@@ -45,39 +42,37 @@
 
         <!-- Statistics Cards -->
         <div class="row mb-4">
-            <div class="col-md-3"><div class="stat-card text-center"><h6>Total Students</h6><div class="stat-number" id="totalStudents">0</div></div></div>
-            <div class="col-md-3"><div class="stat-card text-center"><h6>At-Risk Students</h6><div class="stat-number text-danger" id="atRiskCount">0</div></div></div>
-            <div class="col-md-3"><div class="stat-card text-center"><h6>My Courses</h6><div class="stat-number" id="myCoursesCount">0</div></div></div>
-            <div class="col-md-3"><div class="stat-card text-center"><h6>Total Enrollments</h6><div class="stat-number" id="totalEnrollments">0</div></div></div>
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <h6>Total Students</h6>
+                    <div class="stat-number" id="totalStudents">0</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <h6>My Courses</h6>
+                    <div class="stat-number" id="myCoursesCount">0</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <h6>Total Enrollments</h6>
+                    <div class="stat-number" id="totalEnrollments">0</div>
+                </div>
+            </div>
         </div>
 
         <!-- Tabs -->
         <ul class="nav nav-tabs mb-3" id="dashboardTab" role="tablist">
-            <li class="nav-item"><button class="nav-link active" id="students-tab" data-bs-toggle="tab" data-bs-target="#students" type="button">📚 Students List</button></li>
-            <li class="nav-item"><button class="nav-link" id="courses-tab" data-bs-toggle="tab" data-bs-target="#courses" type="button">📖 My Courses</button></li>
+            <li class="nav-item"><button class="nav-link active" id="courses-tab" data-bs-toggle="tab" data-bs-target="#courses" type="button">📖 My Courses</button></li>
             <li class="nav-item"><button class="nav-link" id="create-tab" data-bs-toggle="tab" data-bs-target="#create" type="button">➕ Create Course</button></li>
-            <li class="nav-item"><button class="nav-link" id="alerts-tab" data-bs-toggle="tab" data-bs-target="#alerts" type="button">⚠️ At-Risk Alerts</button></li>
-            <li class="nav-item"><button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button">📊 Analytics</button></li>
+            <li class="nav-item"><button class="nav-link" id="students-tab" data-bs-toggle="tab" data-bs-target="#students" type="button">👥 Students List</button></li>
+            <li class="nav-item"><button class="nav-link" id="alerts-tab" data-bs-toggle="tab" data-bs-target="#alerts" type="button">⚠️ Alerts</button></li>
         </ul>
 
         <div class="tab-content">
-            <!-- Students Tab -->
-            <div class="tab-pane fade show active" id="students">
-                <div class="card">
-                    <div class="card-header bg-white"><h5 class="mb-0">Student Performance Overview</h5></div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead><tr><th>Student ID</th><th>Name</th><th>Course</th><th>Latest Prediction</th><th>Risk Level</th></thead>
-                                <tbody id="studentsTable"><tr><td colspan="5" class="text-center">Loading students...</td></tr></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- My Courses Tab -->
-            <div class="tab-pane fade" id="courses">
+            <div class="tab-pane fade show active" id="courses">
                 <div class="card">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">📖 My Created Courses</h5>
@@ -91,10 +86,12 @@
                 </div>
             </div>
 
-            <!-- Create Course Tab -->
+            <!-- Create Course Tab - ONLY ONE -->
             <div class="tab-pane fade" id="create">
                 <div class="card">
-                    <div class="card-header bg-primary text-white"><h5 class="mb-0">📝 Create New Course</h5></div>
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">📝 Create New Course</h5>
+                    </div>
                     <div class="card-body">
                         <form id="createCourseForm">
                             <div class="row">
@@ -133,19 +130,41 @@
                 </div>
             </div>
 
-            <!-- Alerts Tab -->
-            <div class="tab-pane fade" id="alerts">
-                <div class="card"><div class="card-body"><div id="alertsList">Loading alerts...</div></div></div>
+            <!-- Students List Tab -->
+            <div class="tab-pane fade" id="students">
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">👥 Enrolled Students</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr><th>Student ID</th><th>Name</th><th>Course</th><th>Predicted Grade</th><th>Enrolled Date</th></tr>
+                                </thead>
+                                <tbody id="studentsTable">
+                                    <tr><td colspan="5" class="text-center">Loading students...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Analytics Tab -->
-            <div class="tab-pane fade" id="analytics">
-                <div class="row"><div class="col-md-6"><canvas id="gradeChart"></canvas></div><div class="col-md-6"><canvas id="riskChart"></canvas></div></div>
+            <!-- Alerts Tab -->
+            <div class="tab-pane fade" id="alerts">
+                <div class="card">
+                    <div class="card-body">
+                        <div id="alertsList">Loading alerts...</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <footer class="bg-light text-center py-3 mt-4"><div class="container"><p>&copy; 2025 USTED. Lecturer Dashboard</p></div></footer>
+    <footer class="bg-light text-center py-3 mt-4">
+        <div class="container"><p>&copy; 2025 USTED. Lecturer Dashboard</p></div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -157,11 +176,11 @@
             window.location.href = 'login.html';
         }
         
-        // Load all data
-        async function loadDashboard() {
-            await loadMyCourses();
-            await loadStudents();
-            await loadAlerts();
+        // Load lecturer name
+        const user = JSON.parse(localStorage.getItem('lecturerInfo') || '{}');
+        if (user.full_name) {
+            document.getElementById('lecturerName').textContent = user.full_name;
+            document.getElementById('welcomeMsg').textContent = `Welcome, ${user.full_name}!`;
         }
         
         // Load My Courses
@@ -181,13 +200,13 @@
                         totalEnrollments += c.enrolled || 0;
                         return `
                             <div class="col-md-4 mb-3">
-                                <div class="card course-card h-100" onclick="showCourseDetails(${c.id})">
+                                <div class="card course-card h-100">
                                     <div class="card-body">
                                         <h6><strong>${c.course_code}</strong></h6>
                                         <p class="mb-1">${c.course_name}</p>
                                         <p class="small text-muted mb-1">Credits: ${c.credits}</p>
-                                        <p class="small mb-1">📊 Enrolled: ${c.enrolled || 0} / ${c.capacity} students</p>
-                                        <button class="btn btn-info btn-sm mt-2" onclick="event.stopPropagation(); viewRoster(${c.id})">👥 View Roster</button>
+                                        <p class="small mb-2">📊 Enrolled: ${c.enrolled || 0} / ${c.capacity} students</p>
+                                        <button class="btn btn-info btn-sm w-100" onclick="viewRoster(${c.id}, '${c.course_code}')">👥 View Roster</button>
                                     </div>
                                 </div>
                             </div>
@@ -204,6 +223,28 @@
             }
         }
         
+        // View Course Roster
+        async function viewRoster(courseId, courseCode) {
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/lecturer/courses/${courseId}/students?token=${token}`);
+                const data = await response.json();
+                
+                if (data.students && data.students.length > 0) {
+                    let studentList = data.students.map(s => 
+                        `${s.student_id} | ${s.full_name} | ${s.email}`
+                    ).join('\n');
+                    alert(`📋 ${courseCode} - ${data.course.course_name}\n\nEnrolled Students (${data.students.length}):\n\n${studentList}`);
+                } else {
+                    alert(`📋 ${courseCode}\n\nNo students enrolled yet.`);
+                }
+            } catch (error) {
+                console.error('Error loading roster:', error);
+                alert('Error loading roster');
+            }
+        }
+        
         // Load Students
         async function loadStudents() {
             const token = localStorage.getItem('token');
@@ -215,12 +256,12 @@
                 
                 if (students && students.length > 0) {
                     tbody.innerHTML = students.map(s => `
-                         <tr>
+                        <tr>
                             <td>${s.student_id}</td>
                             <td>${s.full_name}</td>
                             <td>${s.course_code || 'N/A'}</td>
                             <td><span class="badge bg-primary">${s.latest_grade || 'N/A'}</span></td>
-                            <td><span class="badge ${s.risk_level === 'high' ? 'bg-danger' : (s.risk_level === 'medium' ? 'bg-warning' : 'bg-success')}">${s.risk_level || 'Unknown'}</span></td>
+                            <td>${s.last_active ? new Date(s.last_active).toLocaleDateString() : 'N/A'}</td>
                         </tr>
                     `).join('');
                     document.getElementById('totalStudents').textContent = students.length;
@@ -230,33 +271,6 @@
             } catch (error) {
                 console.error('Error loading students:', error);
             }
-        }
-        
-        // View Course Roster
-        async function viewRoster(courseId) {
-            const token = localStorage.getItem('token');
-            
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/lecturer/courses/${courseId}/students?token=${token}`);
-                const data = await response.json();
-                
-                if (data.students && data.students.length > 0) {
-                    let studentList = data.students.map(s => 
-                        `${s.student_id} - ${s.full_name} (${s.email}) - Enrolled: ${new Date(s.enrolled_at).toLocaleDateString()}`
-                    ).join('\n');
-                    alert(`📋 ${data.course.course_code} - ${data.course.course_name}\n\nEnrolled Students:\n${studentList}`);
-                } else {
-                    alert(`📋 ${data.course.course_code} - ${data.course.course_name}\n\nNo students enrolled yet.`);
-                }
-            } catch (error) {
-                console.error('Error loading roster:', error);
-                alert('Error loading roster');
-            }
-        }
-        
-        // Show course details
-        async function showCourseDetails(courseId) {
-            await viewRoster(courseId);
         }
         
         // Load Alerts
@@ -284,7 +298,7 @@
         }
         
         // Create Course
-        document.getElementById('createCourseForm')?.addEventListener('submit', async function(e) {
+        document.getElementById('createCourseForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const token = localStorage.getItem('token');
             
@@ -320,6 +334,7 @@
                     alert('❌ Error: ' + (data.detail || 'Failed to create course'));
                 }
             } catch (error) {
+                console.error('Create course error:', error);
                 alert('Network error: ' + error.message);
             } finally {
                 btn.innerHTML = originalText;
@@ -333,8 +348,10 @@
             window.location.href = 'login.html';
         });
         
-        // Load dashboard on page load
-        loadDashboard();
+        // Load all data
+        loadMyCourses();
+        loadStudents();
+        loadAlerts();
     </script>
 </body>
 </html>
