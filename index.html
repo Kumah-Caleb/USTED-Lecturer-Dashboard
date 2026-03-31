@@ -178,14 +178,18 @@
         }
 
         async function loadMyCourses() {
-            const token = localStorage.getItem('token'); const container = document.getElementById('myCoursesList');
+            const token = localStorage.getItem('token');
+            const container = document.getElementById('myCoursesList');
+            if (!container) { console.warn('loadMyCourses: #myCoursesList not found in DOM'); return; }
             try {
                 const response = await fetch(`${API_BASE_URL}/api/lecturer/courses/manage?token=${token}`);
                 const courses = await response.json();
                 if (courses && courses.length > 0) {
-                    container.innerHTML = `<div class="row">${courses.map(c => `<div class="col-md-4"><div class="card course-card" onclick="showCourseDetails(${c.id})"><div class="card-body"><h6><strong>${c.course_code}</strong> - ${c.course_name}</h6><p class="small">Enrolled: ${c.enrolled}/${c.capacity}</p><button class="btn btn-info btn-sm" onclick="event.stopPropagation(); showCourseDetails(${c.id})">👥 View Roster</button></div></div></div>`).join('')}</div>`;
-                } else { container.innerHTML = '<div class="alert alert-info">No courses yet. Click "Create New Course"!</div>'; }
-            } catch (error) { console.error('Error:', error); }
+                    container.innerHTML = `<div class="row">${courses.map(c => `<div class="col-md-4"><div class="card course-card" onclick="showCourseDetails(${c.id})"><div class="card-body"><h6><strong>${c.course_code}</strong> - ${c.course_name}</h6><p class="small">Enrolled: ${c.enrolled}/${c.capacity}</p><button class="btn btn-info btn-sm" onclick="event.stopPropagation(); showCourseDetails(${c.id})">&#128101; View Roster</button></div></div></div>`).join('')}</div>`;
+                } else {
+                    container.innerHTML = '<div class="alert alert-info">No courses yet. Click "Create New Course"!</div>';
+                }
+            } catch (error) { console.error('loadMyCourses error:', error); }
         }
 
         async function loadCoursesForPredict() {
@@ -194,6 +198,7 @@
                 const response = await fetch(`${API_BASE_URL}/api/lecturer/courses/manage?token=${token}`);
                 const courses = await response.json();
                 const courseSelect = document.getElementById('predictCourseSelect');
+                if (!courseSelect) { console.warn('loadCoursesForPredict: #predictCourseSelect not found in DOM'); return; }
                 courseSelect.innerHTML = '<option value="">Select a course</option>' + courses.map(c => `<option value="${c.id}">${c.course_code} - ${c.course_name}</option>`).join('');
                 
                 courseSelect.onchange = async function() {
@@ -366,4 +371,5 @@
     </script>
 </body>
 </html>
+
 
