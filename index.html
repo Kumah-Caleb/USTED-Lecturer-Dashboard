@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>USTED | Lecturer Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -31,14 +31,19 @@
             font-weight: bold;
             color: #003366;
         }
-        .alert-danger {
-            background-color: #f8d7da;
-            border-left: 4px solid #dc3545;
+        .risk-high { background-color: #dc3545; color: white; }
+        .risk-medium { background-color: #fd7e14; color: white; }
+        .risk-low { background-color: #28a745; color: white; }
+        .prediction-badge {
+            font-weight: bold;
+            padding: 4px 12px;
+            border-radius: 20px;
         }
-        .alert-warning {
-            background-color: #fff3cd;
-            border-left: 4px solid #ffc107;
-        }
+        .grade-A { background-color: #d4edda; color: #155724; }
+        .grade-B { background-color: #d1ecf1; color: #0c5460; }
+        .grade-C { background-color: #fff3cd; color: #856404; }
+        .grade-D { background-color: #f8d7da; color: #721c24; }
+        .grade-F { background-color: #f8d7da; color: #721c24; }
         .student-row {
             cursor: pointer;
             transition: background-color 0.2s;
@@ -46,19 +51,14 @@
         .student-row:hover {
             background-color: #f0f8ff;
         }
-        .grade-A { background-color: #d4edda; }
-        .grade-B { background-color: #d1ecf1; }
-        .grade-C { background-color: #fff3cd; }
-        .grade-D { background-color: #f8d7da; }
-        .grade-F { background-color: #f8d7da; }
-        .prediction-badge {
-            font-weight: bold;
-            padding: 4px 12px;
-            border-radius: 20px;
+        .alert-warning-custom {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
         }
-        .risk-high { background-color: #dc3545; color: white; }
-        .risk-medium { background-color: #fd7e14; color: white; }
-        .risk-low { background-color: #28a745; color: white; }
+        .alert-danger-custom {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
     </style>
 </head>
 <body>
@@ -78,7 +78,7 @@
         <!-- Welcome Section -->
         <div class="row mb-4">
             <div class="col-12">
-                <div class="card bg-primary text-white">
+                <div class="card" style="background-color: #003366; color: white;">
                     <div class="card-body">
                         <h3 id="welcomeMsg">Welcome, Dr. Lecturer!</h3>
                         <p>Monitor your students' academic performance and identify at-risk students early.</p>
@@ -115,25 +115,25 @@
             </div>
         </div>
 
-        <!-- Tabs for Different Views -->
+        <!-- Tabs -->
         <ul class="nav nav-tabs mb-3" id="dashboardTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="students-tab" data-bs-toggle="tab" data-bs-target="#students" type="button" role="tab">📚 Students List</button>
+            <li class="nav-item">
+                <button class="nav-link active" id="students-tab" data-bs-toggle="tab" data-bs-target="#students" type="button">📚 Students List</button>
             </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="courses-tab" data-bs-toggle="tab" data-bs-target="#courses" type="button" role="tab">📖 My Courses</button>
+            <li class="nav-item">
+                <button class="nav-link" id="courses-tab" data-bs-toggle="tab" data-bs-target="#courses" type="button">📖 My Courses</button>
             </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="alerts-tab" data-bs-toggle="tab" data-bs-target="#alerts" type="button" role="tab">⚠️ At-Risk Alerts</button>
+            <li class="nav-item">
+                <button class="nav-link" id="alerts-tab" data-bs-toggle="tab" data-bs-target="#alerts" type="button">⚠️ At-Risk Alerts</button>
             </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab">📊 Analytics</button>
+            <li class="nav-item">
+                <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button">📊 Analytics</button>
             </li>
         </ul>
 
         <div class="tab-content">
-            <!-- Students List Tab -->
-            <div class="tab-pane fade show active" id="students" role="tabpanel">
+            <!-- Students Tab -->
+            <div class="tab-pane fade show active" id="students">
                 <div class="card">
                     <div class="card-header bg-white">
                         <h5 class="mb-0">Student Performance Overview</h5>
@@ -162,7 +162,7 @@
             </div>
 
             <!-- Courses Tab -->
-            <div class="tab-pane fade" id="courses" role="tabpanel">
+            <div class="tab-pane fade" id="courses">
                 <div class="card">
                     <div class="card-header bg-white">
                         <h5 class="mb-0">My Courses</h5>
@@ -176,7 +176,7 @@
             </div>
 
             <!-- Alerts Tab -->
-            <div class="tab-pane fade" id="alerts" role="tabpanel">
+            <div class="tab-pane fade" id="alerts">
                 <div class="card">
                     <div class="card-header bg-white">
                         <h5 class="mb-0">⚠️ Students Who Need Attention</h5>
@@ -190,7 +190,7 @@
             </div>
 
             <!-- Analytics Tab -->
-            <div class="tab-pane fade" id="analytics" role="tabpanel">
+            <div class="tab-pane fade" id="analytics">
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <div class="card">
@@ -212,16 +212,6 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header bg-white">
-                                <h6>Performance Trend</h6>
-                            </div>
-                            <div class="card-body">
-                                <canvas id="trendChart" height="150"></canvas>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -230,17 +220,14 @@
     <footer class="bg-light text-center py-3 mt-4">
         <div class="container">
             <p class="mb-0">&copy; 2025 USTED. Lecturer Dashboard v1.0</p>
+            <small>Connected to <a href="https://kumah-caleb.github.io/Research-Project-V.1/" target="_blank">Student Portal</a></small>
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script>
         const API_BASE_URL = 'https://aamusted-predictor-backend2.onrender.com';
-        let lecturerInfo = null;
         let gradeChart = null;
         let riskChart = null;
-        let trendChart = null;
 
         // Check authentication
         function checkAuth() {
@@ -252,7 +239,7 @@
             return true;
         }
 
-        // Load lecturer dashboard data
+        // Load dashboard data
         async function loadDashboard() {
             const token = localStorage.getItem('token');
             if (!token) return;
@@ -261,12 +248,12 @@
                 // Load lecturer info
                 const lecturerRes = await fetch(`${API_BASE_URL}/api/lecturer/profile?token=${token}`);
                 if (lecturerRes.ok) {
-                    lecturerInfo = await lecturerRes.json();
-                    document.getElementById('lecturerName').textContent = lecturerInfo.full_name || 'Lecturer';
-                    document.getElementById('welcomeMsg').textContent = `Welcome, ${lecturerInfo.full_name || 'Dr. Lecturer'}!`;
+                    const info = await lecturerRes.json();
+                    document.getElementById('lecturerName').textContent = info.full_name || 'Lecturer';
+                    document.getElementById('welcomeMsg').textContent = `Welcome, ${info.full_name || 'Dr. Lecturer'}!`;
                 }
 
-                // Load statistics
+                // Load stats
                 const statsRes = await fetch(`${API_BASE_URL}/api/lecturer/stats?token=${token}`);
                 if (statsRes.ok) {
                     const stats = await statsRes.json();
@@ -276,16 +263,10 @@
                     document.getElementById('totalPredictions').textContent = stats.total_predictions || 0;
                 }
 
-                // Load students list
+                // Load students
                 await loadStudents();
-
-                // Load courses
                 await loadCourses();
-
-                // Load alerts
                 await loadAlerts();
-
-                // Load analytics charts
                 await loadAnalytics();
 
             } catch (error) {
@@ -293,7 +274,6 @@
             }
         }
 
-        // Load students list
         async function loadStudents() {
             const token = localStorage.getItem('token');
             const tbody = document.getElementById('studentsTable');
@@ -307,7 +287,7 @@
                         const riskClass = s.risk_level === 'high' ? 'risk-high' : (s.risk_level === 'medium' ? 'risk-medium' : 'risk-low');
                         const gradeClass = `grade-${s.latest_grade ? s.latest_grade[0] : 'C'}`;
                         return `
-                            <tr class="student-row" onclick="viewStudentDetails('${s.student_id}')">
+                            <tr>
                                 <td>${s.student_id}</td>
                                 <td>${s.full_name}</td>
                                 <td>${s.course_code || 'N/A'}</td>
@@ -327,7 +307,6 @@
             }
         }
 
-        // Load courses
         async function loadCourses() {
             const token = localStorage.getItem('token');
             const container = document.getElementById('coursesList');
@@ -362,7 +341,6 @@
             }
         }
 
-        // Load alerts
         async function loadAlerts() {
             const token = localStorage.getItem('token');
             const container = document.getElementById('alertsList');
@@ -373,7 +351,7 @@
 
                 if (alerts && alerts.length > 0) {
                     container.innerHTML = alerts.map(a => `
-                        <div class="alert ${a.risk_level === 'high' ? 'alert-danger' : 'alert-warning'} mb-2">
+                        <div class="alert ${a.risk_level === 'high' ? 'alert-danger-custom' : 'alert-warning-custom'} mb-2">
                             <strong>⚠️ ${a.student_name} (${a.student_id})</strong><br>
                             <small>Course: ${a.course_code} | Predicted Grade: ${a.predicted_grade} | Confidence: ${a.confidence}%</small><br>
                             <small class="text-muted">${a.recommendation || 'Needs academic support'}</small>
@@ -388,7 +366,6 @@
             }
         }
 
-        // Load analytics charts
         async function loadAnalytics() {
             const token = localStorage.getItem('token');
 
@@ -397,7 +374,7 @@
                 const data = await response.json();
 
                 if (data) {
-                    // Grade Distribution Chart
+                    // Grade Chart
                     if (gradeChart) gradeChart.destroy();
                     const gradeCtx = document.getElementById('gradeChart').getContext('2d');
                     gradeChart = new Chart(gradeCtx, {
@@ -413,7 +390,7 @@
                         options: { responsive: true, maintainAspectRatio: true }
                     });
 
-                    // Risk Distribution Chart
+                    // Risk Chart
                     if (riskChart) riskChart.destroy();
                     const riskCtx = document.getElementById('riskChart').getContext('2d');
                     riskChart = new Chart(riskCtx, {
@@ -427,34 +404,10 @@
                         },
                         options: { responsive: true, maintainAspectRatio: true }
                     });
-
-                    // Trend Chart
-                    if (trendChart) trendChart.destroy();
-                    const trendCtx = document.getElementById('trendChart').getContext('2d');
-                    trendChart = new Chart(trendCtx, {
-                        type: 'line',
-                        data: {
-                            labels: data.weeks || ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-                            datasets: [{
-                                label: 'Average Predicted Grade',
-                                data: data.trend_data || [3.2, 3.1, 3.3, 3.4],
-                                borderColor: '#003366',
-                                backgroundColor: 'rgba(0,51,102,0.1)',
-                                fill: true,
-                                tension: 0.4
-                            }]
-                        },
-                        options: { responsive: true, maintainAspectRatio: true }
-                    });
                 }
             } catch (error) {
                 console.error('Error loading analytics:', error);
             }
-        }
-
-        // View student details (popup or navigate)
-        function viewStudentDetails(studentId) {
-            alert(`View details for student: ${studentId}\n(This feature coming soon)`);
         }
 
         // Logout
