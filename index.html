@@ -162,7 +162,7 @@
                 if (lecturerRes.ok) { const info = await lecturerRes.json(); document.getElementById('lecturerName').textContent = info.full_name || 'Lecturer'; document.getElementById('welcomeMsg').textContent = `Welcome, ${info.full_name || 'Dr. Lecturer'}!`; }
                 const statsRes = await fetch(`${API_BASE_URL}/api/lecturer/stats?token=${token}`);
                 if (statsRes.ok) { const stats = await statsRes.json(); document.getElementById('totalStudents').textContent = stats.total_students || 0; document.getElementById('atRiskCount').textContent = stats.at_risk_count || 0; document.getElementById('avgGpa').textContent = stats.avg_predicted_gpa || '0.00'; document.getElementById('totalPredictions').textContent = stats.total_predictions || 0; }
-                await loadStudents(); await loadMyCourses(); await loadCoursesForPredict(); await loadAlerts(); await loadAnalytics();
+                await loadStudents(); await loadAlerts(); await loadAnalytics();
             } catch (error) { console.error('Error:', error); }
         }
 
@@ -368,8 +368,17 @@
 
         document.getElementById('logoutBtn').addEventListener('click', () => { localStorage.removeItem('token'); window.location.href = 'login.html'; });
         if(checkAuth()) loadDashboard();
+
+document.getElementById('courses-tab').addEventListener('shown.bs.tab', function() {
+    loadMyCourses();
+});
+
+document.getElementById('predict-tab').addEventListener('shown.bs.tab', function() {
+    loadCoursesForPredict();
+});
     </script>
 </body>
 </html>
+
 
 
