@@ -60,7 +60,7 @@
         </div>
     </div>
 
-    <script>
+        <script>
         const API_BASE_URL = 'https://aamusted-predictor-backend2.onrender.com';
         
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
@@ -75,13 +75,14 @@
             submitBtn.disabled = true;
             
             try {
-                const response = await fetch(`${API_BASE_URL}/api/lecturer/login`, {
+                // Try lecturer login endpoint first
+                let response = await fetch(`${API_BASE_URL}/api/lecturer/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password, role: 'lecturer' })
                 });
                 
-                const data = await response.json();
+                let data = await response.json();
                 
                 if (response.ok) {
                     localStorage.setItem('token', data.token);
@@ -90,7 +91,24 @@
                     alert('Login successful! Redirecting to dashboard...');
                     window.location.href = 'index.html';
                 } else {
-                    alert('Login failed: ' + (data.detail || 'Invalid credentials'));
+                    // Try regular login as fallback
+                    const fallbackResponse = await fetch(`${API_BASE_URL}/api/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    
+                    const fallbackData = await fallbackResponse.json();
+                    
+                    if (fallbackResponse.ok && fallbackData.user.role === 'lecturer') {
+                        localStorage.setItem('token', fallbackData.token);
+                        localStorage.setItem('role', 'lecturer');
+                        localStorage.setItem('lecturerInfo', JSON.stringify(fallbackData.user));
+                        alert('Login successful! Redirecting to dashboard...');
+                        window.location.href = 'index.html';
+                    } else {
+                        alert('Login failed: Invalid lecturer credentials');
+                    }
                 }
             } catch (error) {
                 console.error('Login error:', error);
@@ -103,3 +121,4 @@
     </script>
 </body>
 </html>
+
